@@ -1,0 +1,65 @@
+module top_module (
+    input clk,
+    input x,
+    output z
+); 
+    
+
+       
+    
+    
+    
+    
+    wire d1;   
+    reg q_reg1;
+    wire Q1;
+    
+    assign d1 = Q1 ^ x;
+    
+    always@(posedge clk) 
+    begin
+        	q_reg1 <= d1;
+    end
+    
+    assign Q1 = q_reg1;
+    
+    
+    wire d2;   
+    reg q_reg2;
+    wire Q2;
+    wire Q2_;
+    
+    assign d2 = Q2_ & x;
+    
+    always@(posedge clk) 
+    begin
+        	q_reg2 <= d2;
+    end
+    
+    assign Q2 = q_reg2;
+    assign Q2_ = ~q_reg2;
+    
+    wire d3;   
+    reg q_reg3;
+    wire Q3;
+    wire Q3_;
+    
+    assign d3 = Q3_ | x;
+    
+    
+    always@(posedge clk) 
+    begin
+        	q_reg3 <= d3;
+    end
+    
+    assign Q3 = q_reg3;
+    assign Q3_ = ~q_reg3;
+    
+    
+    
+    
+    assign z = ~(Q1|Q2|Q3);
+    
+    
+
+endmodule
