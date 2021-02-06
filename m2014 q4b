@@ -1,0 +1,25 @@
+module top_module (
+    input clk,
+    input d, 
+    input ar,   // asynchronous reset
+    output q);
+    
+    
+    reg q_reg;
+    always@(posedge clk or posedge ar) 
+    //always@(negedge clk)
+    begin
+        if (ar==1)
+            q_reg <= 1'b0;
+        else  
+        	q_reg <= d;
+     
+    end
+    
+    assign q = q_reg;
+    
+    
+    
+    
+
+endmodule
