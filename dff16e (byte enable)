@@ -1,0 +1,54 @@
+module top_module (
+    input clk,
+    input resetn,
+    input [1:0] byteena,
+    input [15:0] d,
+    output [15:0] q
+);
+    
+    
+    reg [7:0] q_reg_low;
+    reg [7:0] q_reg_up;
+    
+    
+    always@(posedge clk) 
+    //always@(negedge clk)
+    begin
+        if (resetn==0)
+        begin
+            q_reg_low <= 7'h0x00;
+        	q_reg_up  <= 7'h0x00;
+        end
+        
+        else if(byteena==2'b01)
+        begin
+            q_reg_low <= d[7:0];
+            q_reg_up <= q_reg_up;
+        end
+        
+        else if(byteena==2'b10)
+        begin
+        	q_reg_low <= q_reg_low;
+            q_reg_up <= d[15:8];
+        end
+        
+        else if(byteena==2'b11)
+        begin
+        	q_reg_low <= d[7:0];
+            q_reg_up <= d[15:8];
+        end
+        
+        else
+        begin
+        	q_reg_low <= q_reg_low;
+            q_reg_up <= q_reg_up;
+        end  
+        
+        
+    end
+    
+    assign q[7:0] = q_reg_low;
+    assign q[15:8] = q_reg_up;
+        
+
+endmodule
