@@ -1,0 +1,78 @@
+module top_module (
+    input clk,
+    input [7:0] in,
+    output [7:0] anyedge
+);
+    
+
+    
+    parameter TCQ = 1;
+    
+    reg [7:0] tri_1; 
+    reg [7:0] tri_2;
+    
+    
+    wire [7:0] pedge;
+    wire [7:0] nedge;
+    
+    
+    always@(posedge clk)
+        begin
+                tri_1 <=  in;
+                tri_2 <=  tri_1;
+        end
+
+    
+    
+    
+// assign negedge_o = tri_2 & (~tri_1);    // neg_edge detect
+    
+    
+    // positive when tri_1 is 1, tri_2 is 0
+    assign pedge[0] = (~tri_2[0]) & tri_1[0];    // pos_edge detect
+    assign pedge[1] = (~tri_2[1]) & tri_1[1];    // pos_edge detect    
+    
+    assign pedge[2] = (~tri_2[2]) & tri_1[2];    // pos_edge detect
+    assign pedge[3] = (~tri_2[3]) & tri_1[3];    // pos_edge detect 
+    
+    assign pedge[4] = (~tri_2[4]) & tri_1[4];    // pos_edge detect
+    assign pedge[5] = (~tri_2[5]) & tri_1[5];    // pos_edge detect 
+    
+    assign pedge[6] = (~tri_2[6]) & tri_1[6];    // pos_edge detect
+    assign pedge[7] = (~tri_2[7]) & tri_1[7];    // pos_edge detect 
+    
+
+        
+    // negetive when tri_1 is 1, tri_2 is 0
+    assign nedge[0] = (tri_2[0]) & ~tri_1[0];    // pos_edge detect
+    assign nedge[1] = (tri_2[1]) & ~tri_1[1];    // pos_edge detect    
+
+    assign nedge[2] = (tri_2[2]) & ~tri_1[2];    // pos_edge detect
+    assign nedge[3] = (tri_2[3]) & ~tri_1[3];    // pos_edge detect 
+
+    assign nedge[4] = (tri_2[4]) & ~tri_1[4];    // pos_edge detect
+    assign nedge[5] = (tri_2[5]) & ~tri_1[5];    // pos_edge detect 
+
+    assign nedge[6] = (tri_2[6]) & ~tri_1[6];    // pos_edge detect
+    assign nedge[7] = (tri_2[7]) & ~tri_1[7];    // pos_edge detect 
+    
+        
+    assign anyedge[0] = nedge[0]|pedge[0];
+    assign anyedge[1] = nedge[1]|pedge[1];
+    assign anyedge[2] = nedge[2]|pedge[2];
+    assign anyedge[3] = nedge[3]|pedge[3];
+    
+    assign anyedge[4] = nedge[4]|pedge[4];
+    assign anyedge[5] = nedge[5]|pedge[5];
+    assign anyedge[6] = nedge[6]|pedge[6];
+    assign anyedge[7] = nedge[7]|pedge[7];
+    
+    
+        
+       
+    
+    
+    
+    
+
+endmodule
