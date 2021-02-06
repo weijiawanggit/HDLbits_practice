@@ -1,0 +1,47 @@
+module top_module (
+    input clk,
+    input [7:0] in,
+    output [7:0] pedge
+);
+    
+    
+    parameter TCQ = 1;
+    
+    reg [7:0] tri_1; 
+    reg [7:0] tri_2;
+    
+    
+    wire [7:0] negedge_o;
+    wire [7:0] posedge_o;
+    
+    
+    always@(posedge clk)
+        begin
+                tri_1 <=  in;
+                tri_2 <=  tri_1;
+        end
+
+    
+    
+    
+// assign negedge_o = tri_2 & (~tri_1);    // neg_edge detect
+    
+    
+    // positive when tri_1 is 1, tri_2 is 0
+    assign pedge[0] = (~tri_2[0]) & tri_1[0];    // pos_edge detect
+    assign pedge[1] = (~tri_2[1]) & tri_1[1];    // pos_edge detect    
+    
+    assign pedge[2] = (~tri_2[2]) & tri_1[2];    // pos_edge detect
+    assign pedge[3] = (~tri_2[3]) & tri_1[3];    // pos_edge detect 
+    
+    assign pedge[4] = (~tri_2[4]) & tri_1[4];    // pos_edge detect
+    assign pedge[5] = (~tri_2[5]) & tri_1[5];    // pos_edge detect 
+    
+    assign pedge[6] = (~tri_2[6]) & tri_1[6];    // pos_edge detect
+    assign pedge[7] = (~tri_2[7]) & tri_1[7];    // pos_edge detect 
+    
+
+    
+    
+
+endmodule
