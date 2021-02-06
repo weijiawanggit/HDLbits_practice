@@ -1,0 +1,25 @@
+module top_module (
+    input clk,
+    input w, R, E, L,
+    output Q
+);
+    
+    wire stage1;
+    wire d;
+    
+    assign stage1 = E?w:Q;
+    assign d = L?   R:stage1;
+    
+        
+        
+    reg q_reg;
+    always@(posedge clk) 
+    begin
+        	q_reg <= d;
+    end
+    
+    assign Q = q_reg;
+    
+    
+
+endmodule
