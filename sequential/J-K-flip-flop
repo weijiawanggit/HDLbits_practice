@@ -1,0 +1,31 @@
+module top_module (
+    input clk,
+    input j,
+    input k,
+    output Q);
+    
+    
+    reg q_reg;
+    wire d;
+    
+    // assign d = (j)&(~k);
+    
+    
+    always@(posedge clk) 
+    begin
+        if((j==0)&(k==1))
+        	q_reg <= 0;
+        else if((j==1)&(k==0))
+        	q_reg <= 1;
+        else if((j==1)&(k==1))
+        	q_reg <= ~q_reg;
+        else
+            q_reg <= q_reg;
+        
+    end
+    
+    assign  Q = q_reg;
+    
+    
+
+endmodule
