@@ -1,0 +1,21 @@
+module top_module (
+    input clk,
+    input in, 
+    output out);
+    
+
+    wire d;
+    reg q_reg;
+    always@(posedge clk) 
+    //always@(negedge clk)
+    begin
+        	q_reg <= d;
+     
+    end
+    
+    
+    assign d = out ^ in;
+    assign out = q_reg;
+    
+  
+endmodule
