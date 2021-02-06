@@ -1,0 +1,25 @@
+module top_module (
+    input clk,
+    input areset,   // active high asynchronous reset
+    input [7:0] d,
+    output [7:0] q
+);
+    
+    reg [7:0] q_reg;
+    always@(posedge clk or posedge areset) 
+    //always@(negedge clk)
+    begin
+        if (areset==1)
+            q_reg <= 7'h0x00;
+        else  
+        	q_reg <= d;
+     
+    end
+    
+    assign q = q_reg;
+
+    
+    
+    
+
+endmodule
