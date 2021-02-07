@@ -1,0 +1,152 @@
+module top_module (
+    input clk,
+    input reset,
+    input enable,
+    output [3:0] Q,
+    output c_enable,
+    output c_load,
+    output [3:0] c_d
+); //
+
+
+    
+    // assign c_load = 4'd12;
+    reg c_enable_reg;
+    reg c_load_reg;
+    reg [3:0] Q_reg;
+    reg  [3:0] c_d_reg;
+    
+    wire [3:0] Q_from_counter;
+    
+    
+    parameter TCQ = 1'b1;    
+    
+reg [3:0] cnt_clk;
+wire en_cnt_clk;
+reg end_cnt_clk;
+reg full_cnt_clk;
+    
+    
+reg [3:0] cnt_slow;
+wire en_cnt_slow;
+reg end_cnt_slow;
+reg full_cnt_slow;
+
+assign  en_cnt_clk = 1;
+    
+    
+   
+    
+    
+    //count on slow clock
+always@(posedge clk)
+begin
+    if(reset)     
+     begin
+        cnt_slow <= #TCQ 4'b1;
+        // c_load_reg <= 1;
+    //else if(cnt_slow == 4'd10-1)     //end counter condition
+    //    cnt_slow <= #TCQ 4'b0;
+      end
+    else if (enable & (cnt_slow < (4'd13-1)) & cnt_slow == (4'd13-2))  // reset the count
+     begin
+        cnt_slow <= #TCQ cnt_slow + 1'b1;
+        c_load_reg <= 1;
+    end
+    else if (enable & (cnt_slow < (4'd13-1)))  // enable the count
+     begin
+        cnt_slow <= #TCQ cnt_slow + 1'b1;
+        c_load_reg <= 0;
+     end
+    else if (~enable & cnt_slow == (4'd13-1))  // keeping the largest value
+      begin
+        cnt_slow <= #TCQ (4'd13-1);
+        c_load_reg <= 0;
+      end
+
+    else if (enable & cnt_slow == (4'd13-1))  // reset the count
+     begin
+        cnt_slow <= #TCQ 1;
+        c_load_reg <= 0;
+    end
+
+    
+    
+    else
+     begin
+        cnt_slow <= #TCQ cnt_slow; // keep the same  
+        c_load_reg <= 0;
+     end    
+         
+end
+
+
+    
+    assign Q = cnt_slow;
+    
+    
+
+
+    
+    /*
+    always@(posedge clk)
+      begin
+          if (reset==1)
+          begin
+              c_enable_reg <= 0;
+          	  Q_reg <= 4'd0;
+              c_d_reg <= 4'd0;
+              c_load_reg <= 0;
+          end
+          
+          else if (enable)
+              begin
+                  c_enable_reg <= 1;
+                  c_load_reg <= 1;
+				  c_d_reg  <= 4'd11;
+              end
+          
+          else
+              begin
+                  c_enable_reg <= 1;
+                  c_load_reg <= 0;
+				  c_d_reg  <= 4'd11;
+              end
+                  
+        end
+       */ 
+        
+              
+       
+
+      
+    
+    
+    assign c_enable = enable;
+    assign c_load = c_load_reg|reset;
+    assign c_d = c_load;
+    // assign Q = Q_from_counter+1'b1;
+    
+    
+    /*
+    count4 the_counter (
+        .clk(clk),
+        .enable(c_enable), 
+        .load(c_load), 
+        .d(c_d),
+        .Q(Q_from_counter)
+    );
+   */ 
+          
+              
+    /*
+    module count4(
+	input clk,
+	input enable,
+	input load,
+	input [3:0] d,
+	output reg [3:0] Q
+    );    
+    */
+
+endmodule
