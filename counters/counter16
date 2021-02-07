@@ -1,0 +1,49 @@
+module top_module (
+    input clk,
+    input reset,      // Synchronous active-high reset
+    output [3:0] q);
+    
+    
+parameter TCQ = 1'b1;    
+    
+reg [3:0]cnt_20ms;
+wire en_cnt_20ms;
+reg end_cnt_20ms;
+reg full_cnt_20ms;
+
+assign  en_cnt_20ms = 1;
+    
+    
+//count  20ms
+always@(posedge clk)
+begin
+    if(reset)        
+        cnt_20ms <= #TCQ 4'b0;
+    else if (en_cnt_20ms)
+        cnt_20ms <= #TCQ cnt_20ms + 1'b1;
+    else if(end_cnt_20ms)     //2nd set
+        cnt_20ms <= #TCQ 4'b0;
+    else
+        cnt_20ms <= #TCQ 4'b0;   
+end
+
+
+//end_cnt_20ms flag circuit
+always@(posedge clk)
+begin
+    if(reset)
+    begin
+        end_cnt_20ms <= #TCQ 1'b0;
+    end
+    else if (cnt_20ms == 4'd15)
+            end_cnt_20ms <= #TCQ 1'b1;
+    else
+            end_cnt_20ms <= #TCQ 1'b0;
+end
+    
+    
+  assign q =  cnt_20ms;
+    
+    
+
+endmodule
