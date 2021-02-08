@@ -1,0 +1,162 @@
+module digits (
+    input clk,
+    input reset,   // Synchronous active-high reset
+    output [3:1] ena,
+    output [15:0] q);
+    
+    
+parameter TCQ = 1'b1; 
+    
+reg [3:0] cnt_clk;
+wire en_cnt_clk;
+reg end_cnt_clk;
+      
+reg [3:0] cnt_tens;
+wire en_cnt_tens;
+reg end_cnt_tens;    
+
+reg [3:0] cnt_hun;
+wire en_cnt_hun;
+reg end_cnt_hun;   
+    
+reg [3:0] cnt_thou;
+wire en_cnt_thou;
+reg end_cnt_thou;     
+    
+    
+    
+    
+assign en_cnt_clk = 1;  // always enable the first counter
+//count on each clock
+always@(posedge clk)
+begin
+    if(reset)        
+        cnt_clk <= #TCQ 4'b0;
+    else if(end_cnt_clk)     //end counter condition
+        cnt_clk <= #TCQ 4'b0;
+    else if (en_cnt_clk)
+        cnt_clk <= #TCQ cnt_clk + 1'b1;
+
+    else
+        cnt_clk <= #TCQ cnt_clk;  // keep the same 
+end
+
+//end count flag circuit
+always@(posedge clk)
+begin
+    if(reset)
+    begin
+            end_cnt_clk <= #TCQ 1'b0;
+    end
+    else if (cnt_clk == 4'd9-1)
+            end_cnt_clk <= #TCQ 1'b1;
+    		
+    else
+            end_cnt_clk <= #TCQ 1'b0;
+end
+
+assign ena[1] =  end_cnt_clk;
+assign q[3:0] =  cnt_clk;    
+    
+    
+
+// count on each 10 clock   
+always@(posedge clk)
+begin
+    if(reset)        
+        cnt_tens <= #TCQ 4'b0;
+    else if(end_cnt_tens)     //end counter condition
+        cnt_tens <= #TCQ 4'b0;
+    else if (end_cnt_clk)
+        cnt_tens <= #TCQ cnt_tens + 1'b1;
+
+    else
+        cnt_tens <= #TCQ cnt_tens;  // keep the same 
+end
+
+//end count flag circuit
+always@(posedge clk)
+begin
+    if(reset)
+    begin
+            end_cnt_tens <= #TCQ 1'b0;
+    end
+    else if ((cnt_tens == 4'd10-1)&(cnt_clk == 4'd9-1))
+            end_cnt_tens <= #TCQ 1'b1;
+    else
+            end_cnt_tens <= #TCQ 1'b0;
+end
+    
+assign ena[2] =  end_cnt_tens;
+assign q[7:4] = cnt_tens;
+    
+    
+    
+// count on each 100 clock   
+always@(posedge clk)
+begin
+    if(reset)        
+        cnt_hun <= #TCQ 4'b0;
+    else if(end_cnt_hun)     //end counter condition
+        cnt_hun <= #TCQ 4'b0;
+    else if (end_cnt_tens)
+        cnt_hun <= #TCQ cnt_hun + 1'b1;
+
+    else
+        cnt_hun <= #TCQ cnt_hun;  // keep the same 
+end
+
+//end count flag circuit
+always@(posedge clk)
+begin
+    if(reset)
+    begin
+            end_cnt_hun <= #TCQ 1'b0;
+    end
+    else if ((cnt_hun == 4'd10-1)&(cnt_tens == 4'd10-1)&(cnt_clk == 4'd9-1))
+            end_cnt_hun <= #TCQ 1'b1;
+    else
+            end_cnt_hun <= #TCQ 1'b0;
+end
+    
+assign ena[3] =  end_cnt_hun;
+assign q[11:8] = cnt_hun;    
+    
+ 
+    
+    
+// count on each 1000 clock   
+always@(posedge clk)
+begin
+    if(reset)        
+        cnt_thou <= #TCQ 4'b0;
+    else if(end_cnt_thou)     //end counter condition
+        cnt_thou <= #TCQ 4'b0;
+    else if (end_cnt_hun)    // the enable condition
+        cnt_thou <= #TCQ cnt_thou + 1'b1;
+
+    else
+        cnt_thou <= #TCQ cnt_thou;  // keep the same 
+end
+
+//end count flag circuit
+always@(posedge clk)
+begin
+    if(reset)
+    begin
+            end_cnt_thou <= #TCQ 1'b0;
+    end
+    else if ((cnt_thou == 4'd10-1)&(cnt_hun == 4'd10-1)&(cnt_tens == 4'd10-1)&(cnt_clk == 4'd9-1))
+            end_cnt_thou <= #TCQ 1'b1;
+    else
+            end_cnt_thou <= #TCQ 1'b0;
+end
+    
+// assign ena[3] =  end_cnt_hun;
+assign q[15:12] = cnt_thou;   
+    
+    
+    
+    
+
+endmodule
