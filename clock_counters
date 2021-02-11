@@ -1,0 +1,398 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 2021/02/08 19:52:11
+// Design Name: 
+// Module Name: clock_bcd
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
+module clock_bcd(
+    input clk,
+    input reset,
+    input ena,
+    output pm,
+    output [7:0] hh,
+    output [7:0] mm,
+    output [7:0] ss);
+
+parameter TCQ = 1'b1; 
+    
+reg [3:0] cnt_clk;
+wire en_cnt_clk;
+reg end_cnt_clk;
+      
+reg [3:0] cnt_tens;
+wire en_cnt_tens;
+reg end_cnt_tens;    
+
+reg [3:0] cnt_mm_low;
+wire en_cnt_mm_low;
+reg en_cnt_mm_low_reg;
+reg end_cnt_mm_low;   
+
+reg [3:0] cnt_mm_high;
+wire en_cnt_mm_high;
+reg end_cnt_mm_high;
+reg en_cnt_mm_high_reg;
+
+
+reg [3:0] cnt_hh_low;
+wire en_cnt_hh_low;
+reg en_cnt_hh_low_reg;
+reg end_cnt_hh_low;   
+
+reg [3:0] cnt_hh_high;
+wire en_cnt_hh_high;
+reg end_cnt_hh_high;
+reg en_cnt_hh_high_reg;
+
+reg end_cnt_hh_low_condition1;
+reg end_cnt_hh_low_condition2;
+    
+reg [3:0] cnt_thou;
+wire en_cnt_thou;
+reg end_cnt_thou;     
+    
+reg pm_reg ;   
+    
+    
+assign en_cnt_clk = ena;  // always enable the first counter
+//count on each clock
+always@(posedge clk)
+begin
+    if(reset)        
+        cnt_clk <= #TCQ 4'b0;
+        
+    else if (ena==1) 
+    begin   
+        // if(end_cnt_clk)     //end counter condition
+        if((cnt_clk == 4'd9))
+            cnt_clk <= #TCQ 4'b0;
+        else if (en_cnt_clk)
+            cnt_clk <= #TCQ cnt_clk + 1'b1;
+    
+        else
+            cnt_clk <= #TCQ cnt_clk;  // keep the same 
+     end
+     
+end
+
+//end count flag circuit
+
+
+
+always@(posedge clk)
+begin
+    if(reset)
+    begin
+            end_cnt_clk <= #TCQ 1'b0;
+    end
+    else if(ena==1)
+        begin
+            if ((cnt_clk == 4'd9-1))
+                    end_cnt_clk <= #TCQ 1'b1;
+                    
+            else
+                    end_cnt_clk <= #TCQ 1'b0;
+        end
+    else
+          end_cnt_clk <= #TCQ 1'b0;
+end
+/*
+always@(posedge clk)
+begin
+    if(reset)
+    begin
+            end_cnt_clk <= #TCQ 1'b0;
+    end
+    else if ((cnt_clk == 4'd9-1))
+            end_cnt_clk <= #TCQ 1'b1;
+    		
+    else
+            end_cnt_clk <= #TCQ 1'b0;
+end
+*/
+
+assign ss[3:0] =  cnt_clk;    
+    
+assign en_cnt_tens = end_cnt_clk;
+
+// count on each 10 clock   
+always@(posedge clk)
+begin
+    if(reset)        
+        cnt_tens <= #TCQ 4'b0;
+    if (ena == 1)
+    begin
+            if(end_cnt_tens )     //end counter condition
+                cnt_tens <= #TCQ 4'b0;
+            // else if (end_cnt_clk)
+            else if (en_cnt_tens & ena)
+                cnt_tens <= #TCQ cnt_tens + 1'b1;
+            else
+                cnt_tens <=    cnt_tens;
+             
+    end
+    else
+        cnt_tens <= #TCQ cnt_tens;  // keep the same 
+end
+
+//end count flag circuit
+always@(posedge clk)
+begin
+    if(reset)
+    begin
+            end_cnt_tens <= #TCQ 1'b0;
+            en_cnt_mm_low_reg <= 0;
+    end
+    else if ((cnt_tens == 4'd5)&(cnt_clk == 4'd9-1))
+    begin
+            end_cnt_tens <= #TCQ 1'b1;
+            en_cnt_mm_low_reg <= 1;
+    end
+    //else if ((cnt_tens == 4'd5)&(cnt_clk == 4'd9-2))
+    //begin
+            //end_cnt_tens <= #TCQ 1'b0;
+           // en_cnt_mm_low_reg <= #TCQ 1'b1;
+    //end
+    else
+    begin
+            end_cnt_tens <= #TCQ 1'b0;
+            en_cnt_mm_low_reg <= #TCQ 1'b0;
+    end
+end
+    
+// assign ena[2] =  end_cnt_tens;
+assign ss[7:4] = cnt_tens;
+
+
+
+
+/*********   the minites   **********/
+// only counts when the seconds are full
+assign en_cnt_mm_low = en_cnt_mm_low_reg;
+
+always@(posedge clk)
+begin
+    if(reset)        
+        cnt_mm_low <= #TCQ 4'b0;
+    // end_cnt_hh_low|end_cnt_hh_high
+    else if(end_cnt_mm_low|end_cnt_mm_high)     //end counter condition
+        cnt_mm_low <= #TCQ 4'b0;
+    else if (en_cnt_mm_low & ena)
+        cnt_mm_low <= #TCQ cnt_mm_low + 1'b1;
+
+    else
+        cnt_mm_low <= #TCQ cnt_mm_low;  // keep the same 
+end
+
+//end count flag circuit
+always@(posedge clk)
+begin
+    if(reset)
+    begin
+            end_cnt_mm_low <= #TCQ 1'b0;
+    end
+    else if ((cnt_mm_low == 4'd10-1)& (cnt_tens == 4'd5)& (cnt_clk == 4'd9-1))
+            end_cnt_mm_low <= #TCQ 1'b1;
+    		
+    else
+            end_cnt_mm_low <= #TCQ 1'b0;
+end
+
+
+assign mm[3:0] =  cnt_mm_low;    
+    
+assign en_cnt_mm_high =  end_cnt_mm_low;  
+
+// the higher part of the minites 
+always@(posedge clk)
+begin
+    if(reset)        
+        cnt_mm_high <= #TCQ 4'b0;
+    else if(end_cnt_mm_high)     //end counter condition
+        cnt_mm_high <= #TCQ 4'b0;
+    else if (en_cnt_mm_high & ena)
+        cnt_mm_high <= #TCQ cnt_mm_high + 1'b1;
+
+    else
+        cnt_mm_high <= #TCQ cnt_mm_high;  // keep the same 
+end
+
+//end count flag circuit
+always@(posedge clk)
+begin
+    if(reset)
+    begin
+            end_cnt_mm_high <= #TCQ 1'b0;
+            en_cnt_hh_low_reg <= 0;
+    end
+    else if ((cnt_mm_high == 4'd5)&(cnt_mm_low == 4'd10-1)& (cnt_tens == 4'd5)& (cnt_clk == 4'd9-1))
+    begin
+            end_cnt_mm_high <= #TCQ 1'b1;
+            en_cnt_hh_low_reg <= 1;
+    end
+    else
+    begin
+            end_cnt_mm_high <= #TCQ 1'b0;
+            en_cnt_hh_low_reg <= 0;
+    end
+end
+
+
+assign mm[7:4] =  cnt_mm_high;
+
+
+/**********************************/
+/*********   the hours   **********/
+// only counts when the seconds are full
+assign en_cnt_hh_low = en_cnt_hh_low_reg;
+
+always@(posedge clk)
+begin
+    if(reset)        
+        cnt_hh_low <= #TCQ 4'd2;
+    // else if(end_cnt_hh_low|end_cnt_hh_high)     //end counter condition
+    else if(end_cnt_hh_low_condition1)
+    begin
+        cnt_hh_low <= #TCQ 4'd1;
+        // cnt_hh_high <= #TCQ 4'd0;
+    end
+    else if(end_cnt_hh_low_condition2)
+    begin
+        cnt_hh_low <= #TCQ 4'd0;
+        // cnt_hh_high <= #TCQ 4'd0;
+    end
+    
+    
+    
+    else if (en_cnt_hh_low & ena)
+        cnt_hh_low <= #TCQ cnt_hh_low + 1'b1;
+
+    else
+        cnt_hh_low <= #TCQ cnt_hh_low;  // keep the same 
+end
+
+//end count flag circuit
+always@(posedge clk)
+begin
+    if(reset)
+    begin
+            end_cnt_hh_low <= #TCQ 1'b0;
+            end_cnt_hh_low_condition1 <= 0;
+            end_cnt_hh_low_condition2 <= 0;
+    end
+    else if ((cnt_hh_high == 4'd0)&(cnt_hh_low == 4'd9)&(cnt_mm_high == 4'd5)&(cnt_mm_low == 4'd10-1)& (cnt_tens == 4'd5)& (cnt_clk == 4'd9-1))
+    begin        
+            end_cnt_hh_low_condition2 <= #TCQ 1'b1;
+            // end_cnt_hh_low
+            
+    end
+    else if ((cnt_hh_high == 4'd1)&(cnt_hh_low == 4'd2)&(cnt_mm_high == 4'd5)&(cnt_mm_low == 4'd10-1)& (cnt_tens == 4'd5)& (cnt_clk == 4'd9-1))
+    begin        
+            end_cnt_hh_low_condition1 <= #TCQ 1'b1;
+            
+    end
+    		
+    else
+    begin
+            end_cnt_hh_low_condition1 <= 0;
+            end_cnt_hh_low_condition2 <= 0;
+            end_cnt_hh_low <= #TCQ 1'b0;
+     end
+end
+
+
+assign hh[3:0] =  cnt_hh_low;    
+    
+assign en_cnt_hh_high =  end_cnt_hh_low;  
+
+// the higher part of the minites 
+always@(posedge clk)
+begin
+    if(reset)        
+        cnt_hh_high <= #TCQ 4'd1;
+    //else if(end_cnt_hh_high)     //end counter condition
+   // begin
+        // cnt_hh_low <= #TCQ 4'd1;
+        //cnt_hh_high <= #TCQ 4'd0;
+    //end
+    else if(end_cnt_hh_low_condition1)
+    begin
+        // 12 to 01
+        cnt_hh_high <= #TCQ 4'd0;
+        // cnt_hh_high <= #TCQ 4'd0;
+    end
+    else if(end_cnt_hh_low_condition2)
+    begin
+        // // 09 to 10
+        cnt_hh_high <= #TCQ 4'd1;
+        // cnt_hh_high <= #TCQ 4'd0;
+    end
+    
+    
+    else if (en_cnt_hh_high & ena)
+        cnt_hh_high <= #TCQ cnt_hh_high + 1'b1;
+
+    else
+        cnt_hh_high <= #TCQ cnt_hh_high;  // keep the same 
+end
+
+//end count flag circuit
+always@(posedge clk)
+begin
+    if(reset)
+    begin
+            end_cnt_hh_high <= #TCQ 1'b0;
+            pm_reg <= 0;
+    end
+    else if ((cnt_hh_high == 4'd1)&(cnt_hh_low == 4'd2)&(cnt_mm_high == 4'd5)&(cnt_mm_low == 4'd10-1)& (cnt_tens == 4'd5)& (cnt_clk == 4'd9-1))   // reset when hours == 12
+    //else if ((cnt_hh_high == 4'd1)&(cnt_hh_low == 4'd2))
+    begin        
+            
+            
+            end_cnt_hh_high <= #TCQ 1'b1;
+            
+            // pm_reg <= ~pm_reg;
+                        
+     end
+    else if ((cnt_hh_high == 4'd1)&(cnt_hh_low == 4'd1)&(cnt_mm_high == 4'd5)&(cnt_mm_low == 4'd10-1)& (cnt_tens == 4'd5)& (cnt_clk == 4'd10-1))   // reset when hours == 12
+    // else if ((cnt_hh_high == 4'd1)&(cnt_hh_low == 4'd1))   // reset w
+    begin        
+            
+            
+            // end_cnt_hh_high <= #TCQ 1'b1;
+            // pm_reg <= #TCQ ~pm_reg;
+            pm_reg = #TCQ ~pm_reg;
+                        
+     end
+    // else if ((cnt_hh_high == 4'd1)&(cnt_hh_low == 4'd1)&(cnt_mm_high == 4'd5)&(cnt_mm_low == 4'd10-1)& (cnt_tens == 4'd5)& (cnt_clk == 4'd9-1))   // reset when hours == 12
+            // end_cnt_hh_high <= #TCQ 1'b1;
+    		
+    else
+    begin
+            end_cnt_hh_high <= #TCQ 1'b0;
+            // pm_reg <= pm_reg;
+    end
+end
+
+
+assign hh[7:4] =  cnt_hh_high;
+
+assign pm = pm_reg;
+
+
+
+endmodule
