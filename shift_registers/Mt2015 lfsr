@@ -1,0 +1,49 @@
+module top_module (
+	input [2:0] SW,      // R
+	input [1:0] KEY,     // L and clk
+	output [2:0] LEDR);  // Q
+    
+    reg [2:0] q;
+    wire q0;
+    wire q1;
+    wire q2;
+    
+    wire r0;
+    wire r1;
+    wire r2;
+    
+    
+    wire clk;
+    wire enable;
+    
+    
+    assign clk = KEY[0];
+    assign enable = KEY[1];
+    
+    
+    assign r0 = SW[0];
+    assign r1 = SW[1];
+    assign r2 = SW[2];
+    
+    
+    assign q0 = enable?r0: q[2];
+    assign q1 = enable?r1: q[0];
+    assign q2 = enable?r2: (q[2]^q[1]);
+    
+    
+    
+    always @ (posedge clk)
+    begin
+        q[0] <= q0;
+        q[1] <= q1;
+        q[2] <= q2;
+    end
+    
+    
+    assign LEDR = q;
+    
+    
+    
+
+
+endmodule
