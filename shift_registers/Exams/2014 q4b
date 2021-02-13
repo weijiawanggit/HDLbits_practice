@@ -1,0 +1,102 @@
+module top_module (
+    input [3:0] SW,
+    input [3:0] KEY,
+    output [3:0] LEDR
+); //
+
+    // clk to KEY[0]
+    wire clk;
+    assign clk = KEY[0];
+    
+    
+    wire E;
+    assign E = KEY[1];
+    
+    // L to KEY[2]
+    wire L;
+    assign L = KEY[2];
+    
+    wire w;
+    assign w = KEY[3];
+    
+    wire [3:0] q;
+    
+    
+    
+    wire [3:0] R;
+    
+    assign R = SW;
+    
+    
+MUXDFF MUXDFF1(
+        .clk(clk),
+        .w(w), 
+        .R(R[3]), 
+        .E(E), 
+        .L(L),
+        .Q(q[3])
+);
+ 
+
+MUXDFF MUXDFF2(
+        .clk(clk),
+        .w(q[3]), 
+    .R(R[2]), 
+        .E(E), 
+        .L(L),
+    .Q(q[2])
+);
+    
+    
+MUXDFF MUXDFF3(
+        .clk(clk),
+        .w(q[2]), 
+    .R(R[1]), 
+        .E(E), 
+        .L(L),
+    .Q(q[1])
+);
+    
+    
+ MUXDFF MUXDFF4(
+        .clk(clk),
+        .w(q[1]), 
+     .R(R[0]), 
+        .E(E), 
+        .L(L),
+     .Q(q[0])
+);
+    
+    
+assign    LEDR = q;
+    
+    
+
+endmodule
+
+
+
+module MUXDFF (
+    input clk,
+    input w, R, E, L,
+    output Q
+);
+    
+    wire stage1;
+    wire d;
+    
+    assign stage1 = E?w:Q;
+    assign d = L?   R:stage1;
+    
+        
+        
+    reg q_reg;
+    always@(posedge clk) 
+    begin
+        	q_reg <= d;
+    end
+    
+    assign Q = q_reg;
+    
+    
+endmodule
