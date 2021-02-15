@@ -1,0 +1,172 @@
+module top_module(
+    input clk,
+    input load,
+    input [255:0] data,
+    output [255:0] q ); 
+
+    
+    wire [255:0] q_reg;
+    
+    assign q = q_reg;
+    // reg [3:0] q_corner_0_0;
+    // reg [3:0] q_corner_15_0;
+    // reg [3:0] q_corner_0_15;
+    // reg [3:0] q_corner_15_15;
+    
+    wire [3:0] q_neighbor [255:0];
+    
+    
+    // reg［wordsize：0］array_name［0：arraysize］;
+
+    // reg［7:0］my_memory［0:255］;
+
+    // 其中［7:0］是内存的宽度，而［0:255］则是内存的深度（也就是有多少存储单元），其中宽度为8位，深度为256。地址0对应着数组中的0存储单元。
+
+    // 如果要存储一个值到某个单元中去，可以这样做：
+
+    // my_memory［address］=data_in;
+
+    // 而如果要从某个单元读出值，可以这么做：
+
+    // data_out=my_memory［address］;
+    
+    // reg [3:0] 
+    
+    
+    assign q_neighbor[0]  = q_reg[1] + q_reg[15] + q_reg[16] + q_reg[17] + q_reg[31] + q_reg[240] + q_reg[241] + q_reg[255];
+    assign q_neighbor[15] = q_reg[0] + q_reg[14] + q_reg[16] + q_reg[30] + q_reg[31] + q_reg[240] + q_reg[254] + q_reg[255];
+    
+    
+    assign q_neighbor[240] = q_reg[0] + q_reg[1] + q_reg[15] + q_reg[224] + q_reg[225] + q_reg[239] + q_reg[241] + q_reg[255];
+    assign q_neighbor[255] = q_reg[0] + q_reg[14] + q_reg[15] + q_reg[224] + q_reg[240] + q_reg[238] + q_reg[239] + q_reg[254];
+        
+    /*
+    always @ (posedge clk)
+    begin
+        if (load == 1)
+            q_reg <= data;
+        else if (q_corner_0_0)
+        
+    end
+    */
+    
+    
+    // the upper side
+    generate
+        genvar i_up;
+    	for(i_up = 1; i_up < 15; i_up=i_up+1) begin : neighbor_up_side
+            assign q_neighbor[i_up] = q_reg[i_up-1] + q_reg[i_up+1]+ q_reg[i_up-1+16] + q_reg[i_up+16] + q_reg[i_up+1+16]+ q_reg[i_up-1+240] + q_reg[i_up+240] + q_reg[i_up+1+240];
+        end
+    endgenerate 
+
+    // the left side
+    generate
+        genvar i_left;
+    	for(i_left = 16; i_left < 240; i_left=i_left+16) begin : neighbor_left_side
+            assign q_neighbor[i_left] = q_reg[i_left-16]  + q_reg[i_left+16]+ q_reg[i_left-16+1] + q_reg[i_left+1] + q_reg[i_left+16+1]+ q_reg[i_left+15] + q_reg[i_left-16+15] + q_reg[i_left+16+15];
+        end
+    endgenerate 
+    
+    
+     // the right side
+    generate
+        genvar i_right;
+    	for(i_right = 31; i_right < 255; i_right=i_right+16) begin : neighbor_right_side
+            assign q_neighbor[i_right] = q_reg[i_right-16-1]  + q_reg[i_right-16]+ q_reg[i_right-16-15] + q_reg[i_right-1] + q_reg[i_right-15]+ q_reg[i_right+16] + q_reg[i_right+16-1] + q_reg[i_right+1];
+        end
+    endgenerate 
+    
+    // the bottom side
+    generate
+        genvar i_bottom;
+    	for(i_bottom = 241; i_bottom < 255; i_bottom=i_bottom+1) begin : neighbor_bottom_side
+            assign q_neighbor[i_bottom] = q_reg[i_bottom-1]  + q_reg[i_bottom+1]+ q_reg[i_bottom-16-1] + q_reg[i_bottom-16] + q_reg[i_bottom-16+1]+ q_reg[i_bottom-240] + q_reg[i_bottom-240-1] + q_reg[i_bottom-240+1];
+        end
+    endgenerate 
+    
+    
+    
+    generate
+        genvar i_row, i_column;
+    	for(i_row = 1; i_row < 15; i_row=i_row+1)
+    	begin: neighbor_middle_side_top_loop
+    	       for(i_column = 1; i_column < 15; i_column=i_column+1)
+                begin : neighbor_middle_side
+                    assign q_neighbor[i_row*16+i_column] = q_reg[i_row*16+i_column-1] + q_reg[i_row*16+i_column+1]+ q_reg[i_row*16+i_column-1-16] + q_reg[i_row*16+i_column-16] + q_reg[i_row*16+i_column-16+1]+ q_reg[i_row*16+i_column-1+16] + q_reg[i_row*16+i_column+16] + q_reg[i_row*16+i_column+16+1];
+                end
+        end
+    endgenerate  
+    
+  
+    generate
+        genvar i;
+    	for(i = 0; i < 256; i=i+1)
+    	begin: conwaylife_loop
+             conwaylife conwaylife_inst(
+             .clk(clk),
+             .load(load),
+             .data(data[i]),
+             .q_neighbor(q_neighbor[i]),
+             .q_reg(q_reg[i])        
+             );  
+               
+                    
+                
+        end
+    endgenerate 
+  
+  
+  
+  
+  
+    
+    
+    
+endmodule
+
+
+module conwaylife (
+    input clk,
+    input load,
+    input data,   // 1 bit
+    input [3:0] q_neighbor,
+    output reg q_reg);  // 1 bit
+    
+    
+    reg q_reg_reg;
+    
+    always @ (posedge clk)
+    begin
+        if (load == 1)
+            q_reg <= data;
+        else if (q_neighbor>=4'h4)
+            q_reg <= 1'b0;
+        else if (q_neighbor==4'h3)
+			q_reg <= 1'b1;
+	    else if (q_neighbor==4'h2)
+			q_reg <= q_reg;	
+        else if (q_neighbor==4'h1)
+			q_reg <= 1'b0;
+        else if (q_neighbor==4'h0)
+			q_reg <= 1'b0;
+        else
+        begin
+            q_reg <= q_reg;	
+        end
+        
+    end
+    
+    
+    
+
+
+endmodule
+
+
+
+
+
+
+
+
+
