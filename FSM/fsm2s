@@ -1,0 +1,96 @@
+module top_module(
+    input clk,
+    input reset,    // Synchronous reset to OFF
+    input j,
+    input k,
+    output out); //  
+
+    parameter OFF=0, ON=1; 
+    reg present_state, next_state;
+
+    // always @(*) begin
+        // State transition logic
+    // end
+
+    // always @(posedge clk) 
+    // begin
+        // State flip-flops with synchronous reset
+    // end
+    
+    
+        always @(posedge clk) 
+        begin
+        if (reset==1) 
+            begin  
+                // Fill in reset logic
+                present_state <= OFF;
+                out <= 1'b0;
+            end 
+        else 
+                    begin
+                        case (present_state)
+                            OFF:
+                                begin
+                                    if (j == 0)
+                                    begin
+                                        present_state <= present_state;
+                                        out <= 1'b0;
+                                        // next_state <= A;
+
+                                    end
+                                    else   // j == 1
+                                    begin
+                                        present_state <= ON;
+                                        out <= 1'b1;
+                                    end
+
+                                end
+
+                            ON:
+                                begin
+                                    if (k == 0)
+                                    begin
+                                        present_state <= present_state;
+                                        out <= 1'b1;
+                                        // next_state <= A;
+
+                                    end
+                                    else  // k == 1
+                                    begin
+                                        present_state <= OFF;
+                                        out <= 1'b0;
+                                    end
+
+                                end
+                            default:
+                                begin
+                                        present_state <= OFF;
+                                        out <= 1'b0;
+                                end
+
+
+                        endcase
+
+                        // State flip-flops
+                        // present_state <= next_state;   
+
+                        
+                        /*
+                        case (present_state)
+                            // Fill in output logic
+                            A:
+                                
+                            B: 
+                                out <= 1'b1;
+                            default:
+                                out <= 1'b0;
+
+                        endcase
+                        */
+                    end
+    end
+
+    // Output logic
+    // assign out = (state == ...);
+
+endmodule
