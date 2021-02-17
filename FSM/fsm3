@@ -1,0 +1,106 @@
+module top_module(
+    input clk,
+    input in,
+    input areset,
+    output reg out); //
+
+    // State transition logic
+
+    // State flip-flops with asynchronous reset
+
+    // Output logic
+    
+    
+    // state delaration
+    parameter A=4'b0001, B=4'b0010, C=4'b0100, D=4'b1000;
+    
+    reg [3:0] present_state;
+    
+    always @(posedge clk or posedge areset) 
+        begin
+        if (areset==1) 
+            begin  
+                // Fill in reset logic
+                present_state <= A;
+                //out <= 1'b0;
+            end 
+        else 
+                    begin
+                        case (present_state)
+                            A:
+                                begin
+                                    if (in == 0)
+                                    begin
+                                        present_state <= A;
+                                        //out <= 1'b0;
+                                    end
+                                    else   
+                                    begin
+                                        present_state <= B;
+                                        //out <= 1'b0;
+                                    end
+
+                                end
+
+                            B:
+                                begin
+                                    if (in == 0)
+                                    begin
+                                        present_state <= C;
+                                        //out <= 1'b0;
+                                    end
+                                    else   
+                                    begin
+                                        present_state <= B;
+                                        //out <= 1'b0;
+                                    end
+
+                                end
+                            C:
+                               begin
+                                    if (in == 0)
+                                    begin
+                                        present_state <= A;
+                                        //out <= 1'b0;
+                                    end
+                                    else   
+                                    begin
+                                        present_state <= D;
+                                        //out <= 1'b0;
+                                    end
+
+                                end
+                            D:
+                               begin
+                                    if (in == 0)
+                                    begin
+                                        present_state <= C;
+                                        //out <= 1'b1;
+                                    end
+                                    else   
+                                    begin
+                                        present_state <= B;
+                                        //out <= 1'b1;
+                                    end
+
+                                end
+                            
+                            
+                            
+                            default:
+                                begin
+                                        present_state <= D;
+                                        //out <= 1'b1;
+                                end
+
+
+                        endcase
+                    end
+        end
+    
+    assign out = (present_state==D)?1:0;
+    
+    
+    
+
+endmodule
