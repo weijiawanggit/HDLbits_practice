@@ -1,0 +1,81 @@
+module top_module(
+    input in,
+    input [1:0] state,
+    output [1:0] next_state,
+    output out); //
+
+    parameter A=0, B=1, C=2, D=3;
+
+    // State transition logic: next_state = f(state, in)
+
+    // Output logic:  out = f(state) for a Moore state machine
+    
+        always@(*) begin  // This is a combinational circuit
+            case(state)
+                A:
+                    if(in==0)
+                       begin
+                            out = 0;
+                            //state = A;
+                            next_state = A;
+                            
+                       end
+                    else
+                       begin
+                            out = 0;
+                            //state = B;
+                            next_state = B;
+                       end
+                        
+                B:
+                     if(in==0)
+                       begin
+                            out = 0;
+                            //state = C;
+                            next_state = C;
+                            
+                       end
+                    else
+                       begin
+                            out = 0;
+                            //state = B;
+                            next_state = B;
+                       end
+                C:
+                    if(in==0)
+                       begin
+                            out = 0;
+                            //state = A;
+                            next_state = A;
+                            
+                       end
+                    else
+                       begin
+                            out = 0;
+                            //state = D;
+                            next_state = D;
+                       end
+                D:
+                    if(in==0)
+                       begin
+                            out = 1;
+                            //state = C;
+                            next_state = C;
+                            
+                       end
+                    else
+                       begin
+                            out = 1;
+                            //state = B;
+                            next_state = B;
+                       end
+          
+                default:
+                           next_state = A;
+            endcase
+        end
+    
+    
+    
+
+endmodule
