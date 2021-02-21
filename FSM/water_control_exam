@@ -1,0 +1,188 @@
+module top_module (
+    input clk,
+    input reset,
+    input [3:1] s,
+    output reg fr3,
+    output reg fr2,
+    output reg fr1,
+    output reg dfr
+); 
+
+    parameter lower_mode=4'b0010, higher_mode=4'b0100, very_low=4'b1000;
+    parameter mode_001 = 3'b001, mode_011 = 3'b011, mode_111 = 3'b111, mode_000 = 3'b000;
+    
+    
+    
+    parameter water_level_very_low = 3'b000;
+    parameter water_level_low = 3'b001;    // s1 
+    parameter water_level_medium = 3'b011;    // s1   s2
+    parameter water_level_high = 3'b111;   // // s1   s2   s3
+    
+    
+    
+    
+    
+    reg [4:0] state, previous_state;
+    // assign state = s;
+    reg [3:1] previous_water, current_water;  //   001,    011,    111;
+    // maybe use only the reg previous_water to store the water level
+    
+    
+    always @(posedge clk) 
+    begin
+        if (reset == 1) 
+                begin  
+                    // Fill in reset logic
+                    // Also include an active-high synchronous reset that resets the state machine to a state equivalent to if the water level had been low for a long time 
+                    // (no sensors asserted, and all four outputs asserted).
+                   
+                    // state <= mode_000;
+                    // previous_state <= mode_000;
+
+                    // current_water <= water_level_very_low;
+                    // previous_water <= water_level_very_low;
+                    previous_water <= mode_000;
+                    fr3 <= 1;
+                    fr2 <= 1;
+                    fr1 <= 1;
+                    dfr <= 1;
+
+                end
+       //else 
+          //begin
+                // state <= s;
+           
+               // move the current state just to next;
+               //previous_state <= state;
+                
+               // current_water <= s; // assign the current water level
+               // previous_water <= current_water;   // move the current water to the previous level;
+               //previous_water <= s;
+               
+                else if ( previous_water < s )
+                begin
+                    case (s)   // 001, 011, 111, 000
+                        mode_001:
+                            begin
+                                // state <= mode_001;
+                                fr3 <= 0;
+                                fr1 <= 1;
+                                fr2 <= 1;
+                                dfr <= 0;
+                                previous_water <= s;
+                            end
+                        mode_011:
+                            begin
+                                // state <= mode_011;
+                                fr3 <= 0;
+                                fr1 <= 1;
+                                fr2 <= 0;
+                                dfr <= 0;
+                                previous_water <= s;
+                            end
+                        mode_111:
+                            begin
+                                // state <= mode_111;
+                                fr3 <= 0;
+                                fr1 <= 0;
+                                fr2 <= 0;
+                                dfr <= 0;
+                                previous_water <= s;
+                            end
+                        mode_000:
+                            begin
+                                // state <= mode_000;
+                                fr3 <= 1;
+                                fr1 <= 1;
+                                fr2 <= 1;
+                                dfr <= 0;
+                                previous_water <= s;
+                            end
+                        endcase
+                    
+                end    //  end of if ( previous_water < s )
+                else if ( previous_water > s )
+                    begin 
+                        // previous_water <= s;
+                        // state <= mode_000;
+                        // fr3 <= fr3;
+                        //fr1 <= fr1;
+                        //fr2 <= fr2;
+                        // dfr <= 1;
+                        case (s)   // 001, 011, 111, 000
+                        mode_001:
+                            begin
+                                // state <= mode_001;
+                                fr3 <= 0;
+                                fr1 <= 1;
+                                fr2 <= 1;
+                                dfr <= 1;
+                                previous_water <= s;
+                            end
+                        mode_011:
+                            begin
+                                // state <= mode_011;
+                                fr3 <= 0;
+                                fr1 <= 1;
+                                fr2 <= 0;
+                                dfr <= 1;
+                                previous_water <= s;
+                            end
+                        mode_111:
+                            begin
+                                // state <= mode_111;
+                                fr3 <= 0;
+                                fr1 <= 0;
+                                fr2 <= 0;
+                                dfr <= 1;
+                                previous_water <= s;
+                            end
+                        mode_000:
+                            begin
+                                // state <= mode_000;
+                                fr3 <= 1;
+                                fr1 <= 1;
+                                fr2 <= 1;
+                                dfr <= 1;
+                                previous_water <= s;
+                            end
+                        endcase
+                        
+                        
+                        
+                        
+                        
+                    end
+                else  // previous_water == s
+                    begin
+                        previous_water <= s;
+                        // state <= state;
+                        // fr3 <= fr3;
+                        // fr2 <= fr2;
+                        // fr1 <= fr1;
+                        // dfr <= dfr;
+                    end
+                       
+         // end  // end of the else
+         
+         
+         
+      end  // end of the always block
+           
+           
+                
+
+
+
+endmodule
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
