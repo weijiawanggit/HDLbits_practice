@@ -1,0 +1,262 @@
+module top_module(
+    input clk,
+    input areset,    // Freshly brainwashed Lemmings walk left.
+    input bump_left,
+    input bump_right,
+    input ground,
+    input dig,
+    output walk_left,
+    output walk_right,
+    output aaah,
+    output digging ); 
+
+    
+    
+    
+   // declare the two states 
+    parameter LEFT=3'b000, RIGHT=3'b001, DOWN_LEFT=3'b010, DOWN_RIGHT=3'b011, LEFT_DIG=3'b101, RIGHT_DIG=3'b111;
+    reg [2:0] state, next_state;
+
+    //  always @(*) begin
+    //   State transition logic
+    //  end
+    
+    reg walk_left_reg, walk_left_store;
+    reg walk_right_reg, walk_right_store;
+    reg aaah_reg, digging_reg;
+    
+    
+     always @(posedge clk, posedge areset) begin
+        // State flip-flops with asynchronous reset
+        if (areset==1)
+            begin
+                state <= LEFT;
+                walk_right_reg<=0;
+                walk_left_reg<=1;
+                aaah_reg<=0;
+                digging_reg <= 0;
+
+            end
+        else
+            begin
+                case(state)
+                    LEFT:
+                        begin
+                            if ((dig==1)&(ground == 1))
+                                    begin
+                                                 state <= LEFT_DIG;
+                                                 walk_right_reg   <= 0;
+                                                 walk_left_reg    <= 0;
+                                                 walk_right_store<=0;
+                                                 walk_left_store<=1;
+                                        
+                                        
+                                                 digging_reg <= 1;
+  
+                                    end
+                            
+                            else if ((bump_left==1)&(ground == 1))
+                                     begin
+                                         state <= RIGHT;
+                                         walk_right_reg<=1;
+                                         walk_left_reg<=0;
+                                         aaah_reg<=0;
+                                         digging_reg <= 0;
+                                      end
+                            else if ((bump_left==1)&(ground == 1)&(dig==1))
+                                     begin
+                                         state <= RIGHT;
+                                         walk_right_reg<=1;
+                                         walk_left_reg<=0;
+                                         aaah_reg<=0;
+                                         digging_reg <= 0;
+                                      end
+    
+                            else if (ground == 0) 
+                                      begin
+                                          state <= DOWN_LEFT;
+                                          walk_right_reg<=0;
+                                          walk_left_reg<=0;
+
+                                          walk_right_store<=0;
+                                          walk_left_store<=1;
+                                          aaah_reg<=1;
+                                      end
+  
+                              else
+                                      begin
+                                            state <= LEFT;
+                                            walk_right_reg<=0;
+                                            walk_left_reg<=1;
+                                            aaah_reg<=0;
+                                            
+                                      end
+                      end
+                    LEFT_DIG:
+                    begin
+                        state <= LEFT_DIG;
+                        walk_right_reg   <= 0;
+                        walk_left_reg    <= 0;
+                        digging_reg <= 1;
+                        if (ground==0)
+                                begin
+                                                  state <= DOWN_LEFT;
+                                                  walk_right_reg <= 0;
+                                                  walk_left_reg  <= 0;
+												  digging_reg <= 0;
+                                                  // walk_right_store<=0;
+                                                  // walk_left_store<=1;
+                                                  aaah_reg<=1;
+                                end
+                        
+                    end
+                    
+                    
+                    DOWN_LEFT:
+                      begin
+                           aaah_reg<=1;
+                           state <= DOWN_LEFT;
+                           walk_right_reg<=0;
+                           walk_left_reg<=0;
+                           digging_reg <= 0;
+                           // walk_right_store<=walk_right_store;
+                           // walk_left_store<=walk_left_store;
+
+                          if (ground == 1)
+                           begin   
+                               aaah_reg<=0;
+                               digging_reg <= 0;
+                               state <= LEFT;
+                               walk_right_reg <= walk_right_store;
+                               walk_left_reg  <= walk_left_store;
+
+                               walk_right_store <= walk_right_store;
+                               walk_left_store <= walk_left_store;
+                      	   end
+                       end
+                        
+                    
+                    
+                    /******************     right part     *********************/
+                    
+                    
+                    
+                    
+                    
+                    RIGHT:
+                       begin                        
+                         if  ((dig==1)&(ground == 1))
+                                 begin
+                                     state <= RIGHT_DIG;
+                                     walk_right_reg   <= 0;
+                                     walk_left_reg    <= 0;
+                                     walk_right_store<=1;
+                                     walk_left_store<=0;
+                                     
+                                     digging_reg <= 1;
+                                 end
+                           else if ((bump_right==1)&(ground == 1))
+                                  begin
+                                       state <= LEFT;
+                                       walk_right_reg<=0;
+                                       walk_left_reg<=1;
+                                       aaah_reg<=0;
+                                  end
+                           else if (ground == 0) 
+                                  begin
+                                       state <= DOWN_RIGHT;
+                                       walk_right_reg<=0;
+                                       walk_left_reg<=0;
+
+                                       walk_right_store<=1;
+                                       walk_left_store<=0;
+
+                                       aaah_reg<=1;
+                                  end
+
+                             else
+                                    begin
+                                        state <= RIGHT;
+                                        walk_right_reg<=1;
+                                        walk_left_reg<=0;
+                                        aaah_reg<=0;
+
+                                    end   
+                       end
+                    
+                    
+                    
+                  RIGHT_DIG:
+                    begin
+                        state <= RIGHT_DIG;
+                        walk_right_reg   <= 0;
+                        walk_left_reg    <= 0;
+                        digging_reg <= 1;
+                        aaah_reg <= 0;
+                        if (ground==0)
+                                begin
+                                    state <= DOWN_RIGHT;
+                                    walk_right_reg<=0;
+                                    walk_left_reg<=0;
+                                    digging_reg <= 0;
+                                    // walk_right_store<=0;
+                                    // walk_left_store<=1;
+                                    aaah_reg<=1;
+                                end
+                        
+                    end  
+                    
+
+                     DOWN_RIGHT:
+                      begin
+                           aaah_reg<=1;
+                           state <= DOWN_RIGHT;
+                           walk_right_reg<=0;
+                           walk_left_reg<=0;
+                          
+                           // walk_right_store   <=   walk_right_store;
+                           // walk_left_store    <=   walk_left_store;
+
+                          if (ground == 1)
+                           begin   
+                               aaah_reg<=0;
+                               state <= RIGHT;
+                               walk_right_reg <= walk_right_store;
+                               walk_left_reg  <= walk_left_store;
+
+                               walk_right_store <= walk_right_store;
+                               walk_left_store <= walk_left_store;
+                      	   end
+                       end
+                    
+                    
+                      
+                  
+                endcase
+                
+            end
+        // else // (ground == 0)
+        // begin
+        /*
+               aaah_reg<=1;
+               state <= state;
+               walk_right_reg<=0;
+               walk_left_reg<=0;
+        */
+        //  end
+            
+        
+        
+        
+        
+    end
+
+    // Output logic
+    assign walk_left =  walk_left_reg;
+    assign walk_right = walk_right_reg;
+    assign aaah = aaah_reg;
+    assign digging = digging_reg;
+
+    
+    
+endmodule
