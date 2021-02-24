@@ -1,0 +1,436 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 2021/02/23 16:56:04
+// Design Name: 
+// Module Name: lemmings
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
+
+
+module top_module(
+    input clk,
+    input areset,    // Freshly brainwashed Lemmings walk left.
+    input bump_left,
+    input bump_right,
+    input ground,
+    input dig,
+    output walk_left,
+    output walk_right,
+    output aaah,
+    output digging, 
+    output [2:0] state_wire); 
+
+    // declare the two states 
+    parameter LEFT=3'b000, RIGHT=3'b001, DOWN_LEFT=3'b010, DOWN_RIGHT=3'b011, LEFT_DIG=3'b101, SPLAT=3'b110, RIGHT_DIG=3'b111;
+    reg [2:0] state, next_state;
+
+    //  always @(*) begin
+    //   State transition logic
+    //  end
+    
+    reg walk_left_reg, walk_left_store;
+    reg walk_right_reg, walk_right_store;
+    reg aaah_reg, digging_reg;
+    
+    
+    
+    
+    
+    // counter
+    
+    reg [8:0]cnt_20;
+    reg en_cnt_20;
+    reg end_cnt_20;
+    reg full_cnt_20;
+    reg reset_counter;
+
+    //  count  20 clock cycle
+    always@(posedge clk or posedge areset or posedge reset_counter)
+    begin
+        if ((areset==1) | (reset_counter==1))       
+            cnt_20 <=  9'd1;
+        else if(end_cnt_20)     //2nd set
+            cnt_20 <= 9'd20+1;
+        else if (en_cnt_20)
+            cnt_20 <=  cnt_20 + 1'd1;
+        else
+            cnt_20 <=  9'd1;   
+    end
+
+
+    //end_cnt_20 flag circuit
+    always@(posedge clk or posedge areset or posedge reset_counter)
+    begin
+        if ((areset==1) | (reset_counter==1))  
+        begin
+            end_cnt_20 <=  1'b0;
+        end
+        else if (cnt_20 == (9'd20))
+                end_cnt_20 <=  1'b1;
+        else if (cnt_20 >= (9'd20))
+                end_cnt_20 <=  1'b1;
+                
+       else
+                end_cnt_20 <=  1'b0;
+                
+    end
+
+    
+    
+    
+    
+     always @(posedge clk, posedge areset) begin
+        // State flip-flops with asynchronous reset
+        if (areset==1)
+            begin
+                state <= LEFT;
+                
+                walk_right_reg<=0;
+                walk_left_reg<=1;
+                aaah_reg<=0;
+                digging_reg <= 0;
+                reset_counter <= 0;
+            end
+        else
+            begin
+                case(state)
+                    SPLAT:
+                        begin
+                            state <= SPLAT;
+                            walk_right_reg<=0;
+                            walk_left_reg<=0;
+                            aaah_reg<=0;
+                            digging_reg <= 0;
+                            reset_counter<=1;
+                            en_cnt_20 <= 0;
+                        end
+    
+                    LEFT:
+                        begin
+                            if ((dig==1)&(ground == 1))
+                                    begin
+                                        state <= LEFT_DIG;
+                                        walk_right_reg   <= 0;
+                                        walk_left_reg    <= 0;
+                                        walk_right_store<=0;
+                                        walk_left_store<=1;
+										reset_counter<=0;
+
+                                        digging_reg <= 1;
+  
+                                    end
+                            
+                            else if ((bump_left==1)&(ground == 1))
+                                     begin
+                                         state <= RIGHT;
+                                         walk_right_reg<=1;
+                                         walk_left_reg<=0;
+                                         aaah_reg<=0;
+                                         digging_reg <= 0;
+                                      end
+                                      
+                            else if ((bump_left==1)&(ground == 1)&(dig==1))
+                                     begin
+                                         state <= RIGHT;
+                                         walk_right_reg<=1;
+                                         walk_left_reg<=0;
+                                         aaah_reg<=0;
+                                         digging_reg <= 0;
+                                      end
+    
+                            else if (ground == 0)  // falling, and start the counter
+                                      begin
+                                          en_cnt_20 <= 1;   // enable the counter
+                                          reset_counter<=0;
+                                          
+                                          state <= DOWN_LEFT;
+                                          walk_right_reg<=0;
+                                          walk_left_reg<=0;
+
+                                          walk_right_store<=0;
+                                          walk_left_store<=1;
+                                          aaah_reg<=1;
+             
+                                      end
+  
+                              else
+                                      begin
+                                            state <= LEFT;
+                                            walk_right_reg<=0;
+                                            walk_left_reg<=1;
+                                            aaah_reg<=0;
+                                            reset_counter<=0;
+                                            
+                                      end
+                      end
+                    
+                    LEFT_DIG:
+                    begin
+                        state <= LEFT_DIG;
+                        walk_right_reg   <= 0;
+                        walk_left_reg    <= 0;
+                        digging_reg <= 1;
+                        if (ground==0)
+                                begin
+                                    state <= DOWN_LEFT;
+                                    walk_right_reg <= 0;
+                                    walk_left_reg  <= 0;
+                                    digging_reg <= 0;
+                                    // walk_right_store<=0;
+                                    // walk_left_store<=1;
+                                    aaah_reg<=1;
+                                end
+                        
+                    end
+                    
+                    
+                    DOWN_LEFT:
+                      begin
+                          if (ground == 0)   // countinue falling
+                              begin
+                                  state <= DOWN_LEFT;
+                                  walk_right_reg<=0;
+                                  walk_left_reg<=0;
+
+                                  walk_right_store<=0;
+                                  walk_left_store<=1;
+                                  
+                                  aaah_reg<=1;
+                                    // en_cnt_20 <= 0; 
+                              end
+                              
+                          // use only the end_cnt_20 to judge if the falling long enough
+                          else if ((ground == 1)&(end_cnt_20 == 1))   // died
+                           begin   
+                               aaah_reg<=0;
+                               digging_reg <= 0;
+                               state <= SPLAT;
+                               walk_right_reg <= 0;
+                               walk_left_reg  <= 0;
+
+                               walk_right_store<=0;
+                               walk_left_store<=1;
+                               en_cnt_20 <= 0; 
+                               reset_counter <= 1;
+                               
+                      	   end
+                      	   
+                      	 else if ((ground == 1)&(end_cnt_20 == 0))    // alive
+                           begin   
+                               aaah_reg<=0;
+                               digging_reg <= 0;
+                               state <= LEFT;
+                               walk_right_reg <= 0;
+                               walk_left_reg  <= 1;
+
+                               walk_right_store <= 0;
+                               walk_left_store <= 1;
+                               en_cnt_20 <= 0;
+                               reset_counter <= 1;
+                               
+                      	   end
+                      	   
+                      	   
+                          else
+                              begin
+                                   aaah_reg<=1;
+                                   state <= DOWN_LEFT;
+                                   walk_right_reg<=0;
+                                   walk_left_reg<=0;
+                                   digging_reg <= 0; 
+                              end
+                       end
+                        
+                    
+                    
+                    /******************     right part     *********************/
+                    
+                    
+                    
+                    
+                    
+                    RIGHT:
+                       begin                        
+                         if  ((dig==1)&(ground == 1))
+                                 begin
+                                     state <= RIGHT_DIG;
+                                     walk_right_reg   <= 0;
+                                     walk_left_reg    <= 0;
+                                     walk_right_store<=1;
+                                     walk_left_store<=0;
+                                     reset_counter<=0;
+                                     
+                                     digging_reg <= 1;
+                                 end
+                           else if ((bump_right==1)&(ground == 1))
+                                  begin
+                                       state <= LEFT;
+                                       walk_right_reg<=0;
+                                       walk_left_reg<=1;
+                                       aaah_reg<=0;
+                                  end
+                           else if (ground == 0)   // start falling
+                                  begin
+                                      
+                                       en_cnt_20 <= 1;   // enable the counter
+                                       reset_counter<=0;
+                                      
+                                       state <= DOWN_RIGHT;
+                                       walk_right_reg<=0;
+                                       walk_left_reg<=0;
+
+                                       walk_right_store<=1;
+                                       walk_left_store<=0;
+
+                                       aaah_reg<=1;
+                                  end
+
+                             else
+                                    begin
+                                        state <= RIGHT;
+                                        walk_right_reg<=1;
+                                        walk_left_reg<=0;
+                                        aaah_reg<=0;
+                                        reset_counter<=0;
+                                    end   
+                       end
+                    
+                    
+                    
+                  RIGHT_DIG:
+                    begin
+                        state <= RIGHT_DIG;
+                        walk_right_reg   <= 0;
+                        walk_left_reg    <= 0;
+                        digging_reg <= 1;
+                        aaah_reg <= 0;
+                        if (ground==0)
+                                begin
+                                    state <= DOWN_RIGHT;
+                                    walk_right_reg<=0;
+                                    walk_left_reg<=0;
+                                    digging_reg <= 0;
+                                    // walk_right_store<=0;
+                                    // walk_left_store<=1;
+                                    aaah_reg<=1;
+                                end
+                        
+                    end  
+                       
+                     DOWN_RIGHT:
+                      begin
+                          if ((ground == 0))   // // countinue falling
+                              begin
+                                    state <= DOWN_RIGHT;
+                                    walk_right_reg<=0;
+                                    walk_left_reg<=0;
+                                    
+                                    walk_right_store<=1;
+                                    walk_left_store<=0;
+                                  
+                                    aaah_reg<=1;
+                                    
+                                    aaah_reg<=1;
+                                    digging_reg <= 0;
+                                    // reset_counter<=1;
+                                    // en_cnt_20 <= 0; 
+                              end
+                          else if ((ground == 1)&(end_cnt_20 == 1))   // died
+                           begin   
+                                   aaah_reg<=0;
+                                   digging_reg <= 0;
+                                   state <= SPLAT;
+                                   walk_right_reg <= 0;
+                                   walk_left_reg  <= 0;
+    
+                                   walk_right_store <= 1;
+                                   walk_left_store <= 0;
+                                   
+                                   en_cnt_20 <= 0; 
+                                   reset_counter <= 1;
+    
+                      	   end
+                      	   
+                      	   else if ((ground == 1)&(end_cnt_20 == 0))    // alive
+                           begin   
+                               aaah_reg<=0;
+                               digging_reg <= 0;
+                               state <= RIGHT;
+                               walk_right_reg <= 1;
+                               walk_left_reg  <= 0;
+
+                               walk_right_store <= 1;
+                               walk_left_store <= 0;
+                               
+                               en_cnt_20 <= 0; 
+                               reset_counter <= 1;
+                      	   end
+                      	   
+                      	   
+                          else
+                              begin
+                                   aaah_reg<=1;
+                                   state <= DOWN_RIGHT;
+                                   walk_right_reg<=0;
+                                   walk_left_reg<=0;
+                                   digging_reg <= 0; 
+                              end
+                          
+                          
+                          
+                       end
+                    
+                    
+                      
+                  
+                endcase
+                
+            end
+        // else // (ground == 0)
+        // begin
+        /*
+               aaah_reg<=1;
+               state <= state;
+               walk_right_reg<=0;
+               walk_left_reg<=0;
+        */
+        //  end
+            
+        
+        
+        
+        
+    end
+
+    // Output logic
+    assign walk_left =  walk_left_reg;
+    assign walk_right = walk_right_reg;
+    assign aaah = aaah_reg;
+    assign digging = digging_reg;
+
+    
+    assign state_wire = state;
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+endmodule
