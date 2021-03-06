@@ -1,0 +1,80 @@
+module top_module(
+    input clk,
+    input [7:0] in,
+    input reset,    // Synchronous reset
+    output done); //
+
+    // State transition logic (combinational)
+
+    // State flip-flops (sequential)
+     // State flip-flops with synchronous reset
+
+    // Output logic
+    
+    // state delaration
+    parameter S0=4'b0001, S1=4'b0010, S2=4'b0100, S3=4'b1000;
+    
+    reg [3:0] present_state;
+    reg done_reg;
+    
+    always @(posedge clk) 
+        begin
+        if (reset==1) 
+            begin  
+                // Fill in reset logic
+                present_state <= S0;
+                done_reg <= 1'b0;
+            end 
+        else 
+                    begin
+                        case (present_state)
+                            S0:
+                                begin
+                                    if (in[3] == 1)
+                                    begin
+                                        present_state <= S2;
+                                        done_reg <= 1'b0;
+                                    end
+                                    else   
+                                    begin
+                                        present_state <= S0;
+                                        done_reg <= 1'b0;
+                                    end
+
+                                end
+
+                            S1:
+                                begin
+                                        
+                                        present_state <= S2;
+                                    	done_reg <= 1'b0;
+                                end
+                            S2:
+                                 begin
+                                        present_state <= S3;
+                                    	done_reg <= 1'b0;
+                                 end
+                            S3:
+                                begin
+                                        present_state <= S0;
+                                    	done_reg <= 1'b1;
+								end
+                          
+                            default:
+                                begin
+                                        present_state <= S0;
+                                        done_reg <= 1'b0;
+                                end
+
+                        endcase
+                    end
+        end
+    
+    
+      // Output logic
+      assign done = done_reg;
+    
+ 
+
+
+endmodule
